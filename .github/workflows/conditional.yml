@@ -1,0 +1,35 @@
+name: Conditional Jobs
+on: 
+    [push, pull_request]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+    changes:
+        runs-on: ubuntu-latest
+        outputs:
+            backend: ${{steps.filter.outputs.backend}}
+            frontend: ${{steps.filter.outputs.frontend}}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dorny/paths-filter@v3
+              id: filter
+              with: 
+                  filters: |
+                    backend:
+                        - 'backend/**'
+                    frontend:
+                        - 'frontend/**'
+    backend:
+        needs: changes
+        runs-on: ubuntu-latest
+        if: ${{ needs.changes.outputs.backend == 'true' }}
+        steps:
+            - run: echo "Backend changed"          
+
+    frontend:
+        needs: changes
+        runs-on: ubuntu-latest
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        steps:
+            - run: echo "Frontend changed"       
